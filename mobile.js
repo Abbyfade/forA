@@ -6,59 +6,58 @@ class Paper {
   touchStartY = 0;
   prevTouchX = 0;
   prevTouchY = 0;
+  velX = 0;
+  velY = 0;
+  rotation = Math.random() * 30 - 15;
   currentPaperX = 0;
   currentPaperY = 0;
-  rotation = Math.random() * 30 - 15;
+  rotating = false;
 
   init(paper) {
-    paper.addEventListener('touchstart', (e) => {
+    paper.style.touchAction = "none"; // Prevents scrolling issues
+
+    paper.addEventListener("touchstart", (e) => {
       if (this.holdingPaper) return;
       this.holdingPaper = true;
+      e.preventDefault();
 
-      // Bring the paper to the front
       paper.style.zIndex = highestZ;
       highestZ += 1;
 
-      // Record the initial touch position
       this.touchStartX = e.touches[0].clientX;
       this.touchStartY = e.touches[0].clientY;
       this.prevTouchX = this.touchStartX;
       this.prevTouchY = this.touchStartY;
     });
 
-    paper.addEventListener('touchmove', (e) => {
+    paper.addEventListener("touchmove", (e) => {
       if (!this.holdingPaper) return;
+      e.preventDefault();
 
-      e.preventDefault(); // Prevent default scrolling behavior
+      let touchX = e.touches[0].clientX;
+      let touchY = e.touches[0].clientY;
 
-      const touchMoveX = e.touches[0].clientX;
-      const touchMoveY = e.touches[0].clientY;
+      this.velX = touchX - this.prevTouchX;
+      this.velY = touchY - this.prevTouchY;
 
-      // Calculate the movement delta
-      const deltaX = touchMoveX - this.prevTouchX;
-      const deltaY = touchMoveY - this.prevTouchY;
+      this.currentPaperX += this.velX;
+      this.currentPaperY += this.velY;
 
-      // Update the paper's position
-      this.currentPaperX += deltaX;
-      this.currentPaperY += deltaY;
+      this.prevTouchX = touchX;
+      this.prevTouchY = touchY;
 
-      // Apply the transformation
-      paper.style.transform = `translateX(${this.currentPaperX}px) translateY(${this.currentPaperY}px) rotateZ(${this.rotation}deg)`;
-
-      // Update the previous touch position
-      this.prevTouchX = touchMoveX;
-      this.prevTouchY = touchMoveY;
+      paper.style.transform = `translate(${this.currentPaperX}px, ${this.currentPaperY}px) rotateZ(${this.rotation}deg)`;
     });
 
-    paper.addEventListener('touchend', () => {
+    paper.addEventListener("touchend", () => {
       this.holdingPaper = false;
     });
   }
 }
 
-// Initialize all papers
-const papers = Array.from(document.querySelectorAll('.paper'));
-papers.forEach(paper => {
+const papers = Array.from(document.querySelectorAll(".paper"));
+
+papers.forEach((paper) => {
   const p = new Paper();
   p.init(paper);
 });
